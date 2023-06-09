@@ -159,3 +159,67 @@ resource "aws_s3_bucket_acl" "lab_bucket_acl" {
   bucket = aws_s3_bucket.lab_bucket.id
   acl    = "private"
 }
+
+#Set Rol to EC2 for assuming list permission on S3
+resource "aws_iam_role" "role_read_list_access" {
+  name = "lab-tcs_S3ReadListAccessRole"
+
+  assume_role_policy = jsonencode({
+    "Version" : "2023-06-09",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : { "Service" : "ec2.amazonaws.com" },
+        "Action" : "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "policy_read_list_access" {
+  name = "lab-tcs_S3ReadListAccessPolicy"
+
+  policy = jsonencode({
+    "Version" : "2023-06-09",
+    "Statement" : [
+      {
+        "Sid" : "AllowUserToSeeBucketListInTheConsole",
+        "Action" : ["s3:ListAllMyBuckets", "s3:GetBucketLocation"],
+        "Effect" : "Allow",
+        "Resource" : ["arn:aws:s3:::*"]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:Get*",
+          "s3:List*"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::${aws_s3_bucket.lab_bucket.bucket}/*",
+          "arn:aws:s3:::${aws_s3_bucket.lab_bucket.bucket}"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attachment_read_list_access" {
+  role       = aws_iam_role.role_read_list_access.name
+  policy_arn = aws_iam_policy.policy_read_list_access.arn
+}
+
+resource "aws_iam_instance_profile" "profile_instance_iam" {
+  name = "profile-instance-iam"
+  role = aws_iam_role.role_read_list_access.name
+}
+
+#General Outputs
+output "instances_private_ips" {
+  value       = "${aws_instance.ec2_instance.*.private_ip}"
+  description = "Private IP address details"
+}
+
+output "instances_public_ips" {
+  value       = "${aws_instance.ec2_instance.*.public_ip}"
+  description = "Public IP address details"
+}
