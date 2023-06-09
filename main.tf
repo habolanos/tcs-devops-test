@@ -145,3 +145,17 @@ resource "aws_volume_attachment" "ebs_att" {
   volume_id   = aws_ebs_volume.ebs_volume.id
   instance_id = aws_instance.ec2_instance.id
 }
+
+#Set S3 Bucket
+resource "aws_s3_bucket" "lab_bucket" {
+  bucket = var.bucket_name
+
+  tags = {
+    Name        = var.bucket_name
+  }
+}
+
+resource "aws_s3_bucket_acl" "lab_bucket_acl" {
+  bucket = aws_s3_bucket.lab_bucket.id
+  acl    = "private"
+}

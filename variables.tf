@@ -32,3 +32,9 @@ variable "sg_ports" {
     ]
   }
 }
+
+variable "bucket_name" {
+  description = "Bucket Name"
+  type        = string
+  default     = "tcs-lab-bucket"
+}
