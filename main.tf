@@ -75,6 +75,7 @@ resource "aws_instance" "ec2_instance" {
   ami                    = "ami-04a0ae173da5807d3"
   instance_type          = var.ec2_type
   vpc_security_group_ids = [aws_security_group.sg_main.id]
+  iam_instance_profile = aws_iam_instance_profile.profile_instance_iam.id
 
   network_interface {
     network_interface_id = aws_network_interface.lab_ni.id
